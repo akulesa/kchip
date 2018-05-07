@@ -35,10 +35,10 @@ def initialize_droplets(config):
         print 'Creating droplets from: '+str(xy[0])+','+str(xy[1])
 
         # Read in image
-        img = kchip_io.read(config, x=xy[0],y=xy[1],t='premerge')
+        img = kchip_io.read(config, x=xy[0],y=xy[1],t='premerge',ret=(0,1,2,3,4,5),number=5)
 
         # Locate droplets and store in temporary dataframe, then append to list of dataframes
-        droplets_ = drop.find_droplets(img.sum(axis=2))
+        droplets_ = drop.find_droplets(config,img.sum(axis=2))
         droplets_.insert(0,'IndexY',xy[1])
         droplets_.insert(0,'IndexX',xy[0])
 
@@ -49,10 +49,11 @@ def initialize_droplets(config):
         to_add = pd.DataFrame(dyes[droplets_['ImageY'],droplets_['ImageX']])
 
         # Fix a bug where if there is only 1 droplet detected it is wrong orientaiton
-        if to_add.shape[1] != 3:
+        if 1 in to_add.shape:
             to_add = to_add.T
 
-        droplets_[['R','G','B']]= to_add
+        # Store fluorescence values in droplets columns
+        droplets_[['Dye '+str(d) for d in range(to_add.shape[-1])]]= to_add
 
         # append dataframe
         droplets.append(droplets_)
